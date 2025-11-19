@@ -1,0 +1,5 @@
+.env*
+node_modules
+
+api/src/generated/prisma
+api/apiTests.http

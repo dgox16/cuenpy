@@ -1,0 +1,9 @@
+node_modules
+apiTests.http
+npm-debug.log
+.git
+.gitignore
+dist
+build
+.vscode
+.env
