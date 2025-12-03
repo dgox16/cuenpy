@@ -7,7 +7,14 @@ import { env } from "../../config/env";
 export const register = async (req: Request<{}, {}, RegisterInput>, res: Response) => {
     try {
         const { username, name, email, password } = req.body;
-        const user = await authService.registerUser(username, name, email, password);
+        const emailNormalized = email.toLowerCase();
+        const usernameNormalized = username.toLowerCase();
+        const user = await authService.registerUser(
+            usernameNormalized,
+            name,
+            emailNormalized,
+            password,
+        );
 
         successResponse(
             res,
@@ -22,8 +29,11 @@ export const register = async (req: Request<{}, {}, RegisterInput>, res: Respons
 
 export const login = async (req: Request<{}, {}, LoginInput>, res: Response) => {
     try {
-        const { username, password } = req.body;
-        const { user, accessToken, refreshToken } = await authService.loginUser(username, password);
+        const { identifier, password } = req.body;
+        const { user, accessToken, refreshToken } = await authService.loginUser(
+            identifier,
+            password,
+        );
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
@@ -36,5 +46,39 @@ export const login = async (req: Request<{}, {}, LoginInput>, res: Response) => 
         successResponse(res, "Login successful", { accessToken, user }, 201);
     } catch (error: any) {
         errorResponse(res, "AUTH_LOGIN_FAIL", error.message);
+    }
+};
+
+export const refresh = async (req: Request, res: Response) => {
+    try {
+        let token = req.cookies?.refreshToken;
+
+        if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+            token = req.headers.authorization.split(" ")[1];
+        }
+
+        if (!token) {
+            return errorResponse(res, "NO_REFRESH_TOKEN", "Refresh token missing", 401);
+        }
+
+        const { accessToken, newRefreshToken, user } = await authService.refreshToken(token);
+
+        if (req.cookies.refreshToken) {
+            res.cookie("refreshToken", newRefreshToken, {
+                httpOnly: true,
+                secure: env.NODE_ENV === "production",
+                sameSite: "strict",
+                path: "/auth/refresh",
+                maxAge: 15 * 24 * 60 * 60 * 1000,
+            });
+        }
+
+        return successResponse(res, "Token refreshed", {
+            accessToken,
+            refreshToken: req.cookies.refreshToken ? undefined : newRefreshToken,
+            user,
+        });
+    } catch (err: any) {
+        return errorResponse(res, "REFRESH_FAIL", err.message, 401);
     }
 };

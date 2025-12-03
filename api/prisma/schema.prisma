@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -16,15 +16,16 @@ datasource db {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  username      String         @unique
-  name          String
-  email         String         @unique
-  password      String
-  refreshTokens RefreshToken[]
-  transactions  Transaction[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                   Int                    @id @default(autoincrement())
+  username             String                 @unique
+  name                 String
+  email                String                 @unique
+  password             String
+  refreshTokens        RefreshToken[]
+  transactions         Transaction[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  RecurringTransaction RecurringTransaction[]
 }
 
 model RefreshToken {
@@ -38,23 +39,57 @@ model RefreshToken {
 }
 
 model Category {
-  id          Int       @id @default(autoincrement())
-  name        String
-  type        CategoryType
-  transactions Transaction[]
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  type                 CategoryType
+  transactions         Transaction[]
+  RecurringTransaction RecurringTransaction[]
 }
 
 model Transaction {
-  id          Int       @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   amount      Float
   description String
   date        DateTime
   type        TransactionType
-  categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id])
-  userId      Int
-  user        User @relation(fields: [userId], references: [id])
-  createdAt   DateTime  @default(now())
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  recurringId Int?
+  recurring   RecurringTransaction? @relation("RecurringEntries", fields: [recurringId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model RecurringTransaction {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  amount      Float
+  description String
+
+  frequency Frequency
+  startDate DateTime
+  endDate   DateTime?
+
+  createdAt DateTime @default(now())
+
+  generated Transaction[] @relation("RecurringEntries")
+}
+
+enum Frequency {
+  daily
+  weekly
+  monthly
+  yearly
 }
 
 enum TransactionType {
