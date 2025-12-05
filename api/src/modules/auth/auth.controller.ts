@@ -1,10 +1,12 @@
-import { Request, Response } from "express";
-import * as authService from "./auth.service";
-import { LoginInput, RegisterInput } from "./auth.schemas";
-import { errorResponse, successResponse } from "../../utils/response";
+import type { Request, Response } from "express";
 import { env } from "../../config/env";
+import type { TypedRequest } from "../../types/http";
+import { getErrorMessage } from "../../utils/getErrorMessage";
+import { errorResponse, successResponse } from "../../utils/response";
+import type { LoginInput, RegisterInput } from "./auth.schemas";
+import * as authService from "./auth.service";
 
-export const register = async (req: Request<{}, {}, RegisterInput>, res: Response) => {
+export const register = async (req: TypedRequest<never, never, RegisterInput>, res: Response) => {
     try {
         const { username, name, email, password } = req.body;
         const emailNormalized = email.toLowerCase();
@@ -22,12 +24,12 @@ export const register = async (req: Request<{}, {}, RegisterInput>, res: Respons
             { id: user.id, username: user.username, name: user.name, email: user.email },
             201,
         );
-    } catch (error: any) {
-        errorResponse(res, "AUTH_REGISTER_FAIL", error.message);
+    } catch (error: unknown) {
+        return errorResponse(res, "AUTH_REGISTER_FAIL", getErrorMessage(error));
     }
 };
 
-export const login = async (req: Request<{}, {}, LoginInput>, res: Response) => {
+export const login = async (req: TypedRequest<never, never, LoginInput>, res: Response) => {
     try {
         const { identifier, password } = req.body;
         const { user, accessToken, refreshToken } = await authService.loginUser(
@@ -44,8 +46,8 @@ export const login = async (req: Request<{}, {}, LoginInput>, res: Response) => 
         });
 
         successResponse(res, "Login successful", { accessToken, user }, 201);
-    } catch (error: any) {
-        errorResponse(res, "AUTH_LOGIN_FAIL", error.message);
+    } catch (error: unknown) {
+        errorResponse(res, "AUTH_LOGIN_FAIL", getErrorMessage(error));
     }
 };
 
@@ -78,7 +80,7 @@ export const refresh = async (req: Request, res: Response) => {
             refreshToken: req.cookies.refreshToken ? undefined : newRefreshToken,
             user,
         });
-    } catch (err: any) {
-        return errorResponse(res, "REFRESH_FAIL", err.message, 401);
+    } catch (error: unknown) {
+        return errorResponse(res, "REFRESH_FAIL", getErrorMessage(error), 401);
     }
 };

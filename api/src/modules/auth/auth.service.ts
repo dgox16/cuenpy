@@ -1,21 +1,28 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "../../config/prisma";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
+import { prisma } from "../../config/prisma";
 
 export interface TokenPayload {
     id: number;
     email: string;
     username: string;
 }
+
 export const generateAccessToken = (payload: TokenPayload) => {
-    return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as any });
+    const options = {
+        expiresIn: env.JWT_EXPIRES_IN,
+    } as jwt.SignOptions;
+
+    return jwt.sign(payload, env.JWT_SECRET, options);
 };
 
 export const generateRefreshToken = (payload: TokenPayload) => {
-    return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-        expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,
-    });
+    const options = {
+        expiresIn: env.JWT_REFRESH_EXPIRES_IN,
+    } as jwt.SignOptions;
+
+    return jwt.sign(payload, env.JWT_REFRESH_SECRET, options);
 };
 
 export const registerUser = async (

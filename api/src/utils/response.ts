@@ -1,15 +1,14 @@
-import { Response } from "express";
+import type { Response } from "express";
 
-interface MetaInfo {
+interface MetaInfo extends Record<string, unknown> {
     timestamp?: string;
     requestId?: string;
-    [key: string]: any;
 }
 
-export const successResponse = (
+export const successResponse = <T>(
     res: Response,
     message: string,
-    data?: any,
+    data?: T,
     status = 200,
     meta: MetaInfo = {},
 ) => {
@@ -21,12 +20,12 @@ export const successResponse = (
     });
 };
 
-export const errorResponse = (
+export const errorResponse = <D>(
     res: Response,
     code: string,
     message: string,
     status = 400,
-    details?: any,
+    details?: D,
     meta: MetaInfo = {},
 ) => {
     return res.status(status).json({

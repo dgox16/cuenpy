@@ -1,10 +1,10 @@
-import { PrismaClient } from '../generated/prisma';
-import { env } from './env';
+import { PrismaClient } from "../generated/prisma";
+import { env } from "./env";
 
 export const prisma = new PrismaClient({
-    log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log: env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
 });
 
-process.on('beforeExit', async () => {
+process.on("beforeExit", async () => {
     await prisma.$disconnect();
 });

@@ -1,12 +1,9 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
     "linter": {
         "enabled": true,
         "rules": {
             "recommended": true,
-            "suspicious": {
-                "noConsole": "off"
-            },
             "style": {
                 "noDefaultExport": "off",
                 "useNamingConvention": "off"
@@ -20,10 +17,20 @@
         "lineWidth": 100,
         "formatWithErrors": true
     },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
     "javascript": {
         "formatter": {
             "quoteStyle": "double",
             "semicolons": "always"
         }
+    },
+    "files": {
+        "includes": ["src/**/*.js"]
     }
 }
