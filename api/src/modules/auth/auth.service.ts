@@ -95,9 +95,12 @@ export const refreshToken = async (incomingToken: string) => {
 
     if (!stored) throw new Error("Refresh token invalid");
 
-    let payload: TokenPayload;
+    if (stored.expiresAt < new Date()) {
+        throw new Error("Refresh token expired");
+    }
+
     try {
-        payload = jwt.verify(incomingToken, env.JWT_REFRESH_SECRET) as TokenPayload;
+        jwt.verify(incomingToken, env.JWT_REFRESH_SECRET);
     } catch {
         throw new Error("Refresh token expired");
     }
@@ -106,6 +109,12 @@ export const refreshToken = async (incomingToken: string) => {
         where: { id: stored.id },
         data: { revoked: true },
     });
+
+    const payload: TokenPayload = {
+        id: stored.user.id,
+        email: stored.user.email,
+        username: stored.user.username,
+    };
 
     const newAccessToken = generateAccessToken(payload);
     const newRefreshToken = generateRefreshToken(payload);
@@ -118,9 +127,18 @@ export const refreshToken = async (incomingToken: string) => {
         },
     });
 
+    const user = stored?.user;
+
+    const userFormatted = {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+    };
+
     return {
-        accessToken: newAccessToken,
+        newAccessToken,
         newRefreshToken,
-        user: stored.user,
+        user: userFormatted,
     };
 };

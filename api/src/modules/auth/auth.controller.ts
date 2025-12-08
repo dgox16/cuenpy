@@ -63,9 +63,9 @@ export const refresh = async (req: Request, res: Response) => {
             return errorResponse(res, "NO_REFRESH_TOKEN", "Refresh token missing", 401);
         }
 
-        const { accessToken, newRefreshToken, user } = await authService.refreshToken(token);
+        const { newAccessToken, newRefreshToken, user } = await authService.refreshToken(token);
 
-        if (req.cookies.refreshToken) {
+        if (req?.cookies?.refreshToken) {
             res.cookie("refreshToken", newRefreshToken, {
                 httpOnly: true,
                 secure: env.NODE_ENV === "production",
@@ -76,8 +76,8 @@ export const refresh = async (req: Request, res: Response) => {
         }
 
         return successResponse(res, "Token refreshed", {
-            accessToken,
-            refreshToken: req.cookies.refreshToken ? undefined : newRefreshToken,
+            newAccessToken,
+            refreshToken: req?.cookies?.refreshToken ? undefined : newRefreshToken,
             user,
         });
     } catch (error: unknown) {
